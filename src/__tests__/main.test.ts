@@ -1,31 +1,22 @@
+import { Octokit } from "@octokit/rest"
 import yaml from "js-yaml"
 import { fs, vol } from "memfs"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
-import { Octokit } from "@octokit/rest"
 import { createBlankComment, editCommentBody } from "../comments"
 import { omniComment } from "../main"
 
 vi.mock("node:fs", () => ({ default: fs }))
 vi.mock("node:fs/promises", () => ({ default: fs.promises }))
-vi.mock("@octokit/rest", () => ({
-  Octokit: vi.fn().mockImplementation(() => ({
-    paginate: {
-      iterator: vi.fn(),
+vi.mock("@octokit/rest", async () => {
+  const { Octokit } = await vi.importActual<{ Octokit: typeof Octokit }>("@octokit/rest")
+  const octokit = new Octokit({ auth: "faketoken" })
+
+  return {
+    Octokit: function Octokit() {
+      return octokit
     },
-    reactions: {
-      createForIssue: vi.fn(),
-      createForIssueComment: vi.fn(),
-      deleteForIssue: vi.fn(),
-      deleteForIssueComment: vi.fn(),
-    },
-    issues: {
-      listComments: vi.fn(),
-      createComment: vi.fn(),
-      getComment: vi.fn(),
-      updateComment: vi.fn(),
-    },
-  })),
-}))
+  }
+})
 
 // The retry mechanism delays for a given amount of time, but we want to run tests as fast as possible
 vi.stubGlobal("setTimeout", setImmediate)
