@@ -385,4 +385,48 @@ describe("omni comment", async () => {
       <!-- mskelton/omni-comment end="test-section" -->"
     `)
   })
+
+  it("should append content when section is not found", async () => {
+    vi.spyOn(octokit.paginate, "iterator").mockImplementation(async function* () {
+      yield ok([{ body: await createBlankComment("/omni-comment.yml"), id: 456 }])
+    })
+
+    vi.spyOn(octokit.issues, "getComment").mockResolvedValue(
+      ok({
+        body: await createBlankComment("/omni-comment.yml"),
+        html_url: "test-url",
+        id: 456,
+      }),
+    )
+
+    const updateCommentSpy = vi
+      .spyOn(octokit.issues, "updateComment")
+      .mockResolvedValue(ok({ html_url: "test-url", id: 456 }))
+
+    const result = await omniComment({
+      configPath: "/omni-comment.yml",
+      issueNumber: 123,
+      message: "new section content",
+      repo: "owner/repo",
+      section: "non-existent-section",
+      token: "faketoken",
+    })
+
+    expect(result).toEqual({
+      html_url: "test-url",
+      id: 456,
+      status: "updated",
+    })
+
+    const request = updateCommentSpy.mock.calls[0][0] as any
+    expect(request.comment_id).toBe(456)
+    expect(request.body).toMatchInlineSnapshot(`
+      "<!-- mskelton/omni-comment id="main" -->
+
+      <!-- mskelton/omni-comment start="test-section" -->
+
+      <!-- mskelton/omni-comment end="test-section" -->
+      new section content"
+    `)
+  })
 })
