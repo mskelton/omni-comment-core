@@ -9,7 +9,7 @@
   "scripts": {
     "build": "tsc",
     "test": "vitest",
-    "prepublish": "npm run build"
+    "prepare": "npm run build"
   },
   "files": [
     "lib"
