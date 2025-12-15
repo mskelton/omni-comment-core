@@ -1,6 +1,6 @@
 {
   "name": "@omni-comment/core",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Combine outputs from many jobs into a single comment",
   "publishConfig": {
     "access": "public"
