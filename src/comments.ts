@@ -129,7 +129,13 @@ export function editCommentBody({
   // If the section is not found, append the content to the end of the comment
   // This is necessary as you add new comment sections
   if (startIndex === -1 || endIndex === -1) {
-    return [...lines, content].join("\n")
+    return [
+      ...lines,
+      "",
+      createIdentifier("start", section),
+      content,
+      createIdentifier("end", section),
+    ].join("\n")
   }
 
   return [...lines.slice(0, startIndex + 1), content, ...lines.slice(endIndex)].join("\n")

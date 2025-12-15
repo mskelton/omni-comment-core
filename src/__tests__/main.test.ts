@@ -426,7 +426,72 @@ describe("omni comment", async () => {
       <!-- mskelton/omni-comment start="test-section" -->
 
       <!-- mskelton/omni-comment end="test-section" -->
-      new section content"
+
+      <!-- mskelton/omni-comment start="non-existent-section" -->
+      new section content
+      <!-- mskelton/omni-comment end="non-existent-section" -->"
     `)
+  })
+
+  it("should add section markers when appending and replace on subsequent updates", async () => {
+    vi.spyOn(octokit.paginate, "iterator").mockImplementation(async function* () {
+      yield ok([{ body: await createBlankComment("/omni-comment.yml"), id: 456 }])
+    })
+
+    const updateCommentSpy = vi
+      .spyOn(octokit.issues, "updateComment")
+      .mockResolvedValue(ok({ html_url: "test-url", id: 456 }))
+
+    // First comment with new section
+    const getCommentSpy = vi.spyOn(octokit.issues, "getComment").mockResolvedValue(
+      ok({
+        body: await createBlankComment("/omni-comment.yml"),
+        html_url: "test-url",
+        id: 456,
+      }),
+    )
+
+    await omniComment({
+      configPath: "/omni-comment.yml",
+      issueNumber: 123,
+      message: "first content",
+      repo: "owner/repo",
+      section: "new-section",
+      token: "faketoken",
+    })
+
+    const firstUpdate = updateCommentSpy.mock.calls[0][0] as any
+    const firstBody = firstUpdate.body
+
+    // Verify markers were added
+    expect(firstBody).toContain('<!-- mskelton/omni-comment start="new-section" -->')
+    expect(firstBody).toContain('<!-- mskelton/omni-comment end="new-section" -->')
+    expect(firstBody).toContain("first content")
+
+    // Second comment with same section - should replace, not append again
+    getCommentSpy.mockResolvedValue(
+      ok({
+        body: firstBody,
+        html_url: "test-url",
+        id: 456,
+      }),
+    )
+
+    await omniComment({
+      configPath: "/omni-comment.yml",
+      issueNumber: 123,
+      message: "second content",
+      repo: "owner/repo",
+      section: "new-section",
+      token: "faketoken",
+    })
+
+    const secondUpdate = updateCommentSpy.mock.calls[1][0] as any
+    const secondBody = secondUpdate.body
+
+    // Verify content was replaced, not appended
+    expect(secondBody).toContain("second content")
+    expect(secondBody).not.toContain("first content")
+    expect(secondBody.match(/new-section/g)).toHaveLength(2) // Only start and end markers
   })
 })
