@@ -46,11 +46,9 @@ describe("omni comment", async () => {
     // Mock that all reactions are created. We can override this for testing the locking logic, but
     // for most tests, let's just assume there isn't currently a lock in place.
     vi.spyOn(octokit.reactions, "createForIssue").mockResolvedValue(created({ id: 1 }))
-    vi.spyOn(octokit.reactions, "createForIssueComment").mockResolvedValue(created({ id: 2 }))
 
     // Deleting the reactions is something we'll never need to care about mocking separately
     vi.spyOn(octokit.reactions, "deleteForIssue").mockResolvedValue(noContent())
-    vi.spyOn(octokit.reactions, "deleteForIssueComment").mockResolvedValue(noContent())
   })
 
   afterEach(() => {
@@ -186,8 +184,8 @@ describe("omni comment", async () => {
     `)
   })
 
-  it("should lock the comment when updating", async () => {
-    vi.spyOn(octokit.reactions, "createForIssueComment")
+  it("should lock the issue when updating", async () => {
+    vi.spyOn(octokit.reactions, "createForIssue")
       .mockResolvedValueOnce(ok({ id: 1 }))
       .mockResolvedValueOnce(created({ id: 1 }))
 

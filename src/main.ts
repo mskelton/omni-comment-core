@@ -1,5 +1,5 @@
-import assert from "node:assert"
 import { Octokit } from "@octokit/rest"
+import assert from "node:assert"
 import { acquireLock } from "./acquireLock"
 import { createComment, findComment, updateComment } from "./comments"
 import { Logger } from "./logger"
@@ -35,14 +35,13 @@ export async function omniComment(options: OmniCommentOptions): Promise<OmniComm
     repo: parseRepo(options.repo),
   }
 
-  let comment = await findComment(options.issueNumber, ctx)
+  // Acquire a lock on the issue to prevent race conditions
+  await using _ = await acquireLock(options.issueNumber, ctx)
 
+  const comment = await findComment(options.issueNumber, ctx)
   if (comment) {
-    const commentId = comment.id
-    await using _ = await acquireLock("comment", commentId, ctx)
-
-    const updatedComment = await updateComment(
-      commentId,
+    const { html_url, id } = await updateComment(
+      comment.id,
       options.title || "",
       options.section,
       options.message || "",
@@ -50,15 +49,9 @@ export async function omniComment(options: OmniCommentOptions): Promise<OmniComm
       ctx,
     )
 
-    return {
-      html_url: updatedComment.html_url,
-      id: updatedComment.id,
-      status: "updated",
-    }
+    return { html_url, id, status: "updated" }
   } else if (options.message) {
-    await using _ = await acquireLock("issue", options.issueNumber, ctx)
-
-    comment = await createComment(
+    const { html_url, id } = await createComment(
       options.issueNumber,
       options.title || "",
       options.section,
@@ -68,11 +61,7 @@ export async function omniComment(options: OmniCommentOptions): Promise<OmniComm
       ctx,
     )
 
-    return {
-      html_url: comment.html_url,
-      id: comment.id,
-      status: "created",
-    }
+    return { html_url, id, status: "created" }
   }
 
   return null
