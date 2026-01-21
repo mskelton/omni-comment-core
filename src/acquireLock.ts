@@ -42,9 +42,9 @@ export function acquireLock(
         // gets updated slightly incorrectly, it's better than a dead-lock.
         if (attempt + 1 === maxAttempts) {
           await unlock()
+        } else {
+          throw new Error("Lock not acquired")
         }
-
-        throw new Error("Lock not acquired")
       }
 
       return {
