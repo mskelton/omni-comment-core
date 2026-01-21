@@ -1,9 +1,9 @@
 import { Octokit } from "@octokit/rest"
 import assert from "node:assert"
-import { acquireLock } from "./acquireLock"
-import { createComment, findComment, updateComment } from "./comments"
-import { Logger } from "./logger"
-import { Context, parseRepo } from "./utils"
+import { acquireLock } from "./acquireLock.js"
+import { createComment, findComment, updateComment } from "./comments.js"
+import { Logger } from "./logger.js"
+import { Context, parseRepo } from "./utils.js"
 
 export interface OmniCommentOptions {
   collapsed?: boolean
