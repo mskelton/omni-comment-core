@@ -14,7 +14,7 @@
   "author": "Mark Skelton",
   "repository": {
     "type": "git",
-    "url": "https://github.com/mskelton/omni-comment-core.git"
+    "url": "git+https://github.com/mskelton/omni-comment-core.git"
   },
   "files": [
     "dist"
