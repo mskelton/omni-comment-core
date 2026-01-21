@@ -10,5 +10,5 @@
     "newlinesBetween": false,
     "enabled": true
   },
-  "ignorePatterns": ["lib/"]
+  "ignorePatterns": ["dist/"]
 }

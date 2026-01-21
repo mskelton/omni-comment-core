@@ -1,6 +1,6 @@
 {
   "name": "@omni-comment/core",
-  "version": "1.1.0",
+  "version": "0.0.0-semantically-released",
   "description": "Combine outputs from many jobs into a single comment",
   "keywords": [
     "comment",
@@ -12,10 +12,20 @@
   },
   "license": "ISC",
   "author": "Mark Skelton",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mskelton/omni-comment-core.git"
+  },
   "files": [
-    "lib"
+    "dist"
   ],
-  "main": "lib/main.js",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
   "publishConfig": {
     "access": "public"
   },
@@ -23,8 +33,7 @@
     "build": "tsc",
     "test": "vitest",
     "format": "oxfmt .",
-    "format:check": "oxfmt --check .",
-    "prepare": "npm run build"
+    "format:check": "oxfmt --check ."
   },
   "dependencies": {
     "@octokit/rest": "^22.0.0",
@@ -37,6 +46,7 @@
     "eslint": "^9.25.0",
     "memfs": "^4.17.0",
     "oxfmt": "^0.26.0",
+    "semantic-release": "^24.2.9",
     "vitest": "^1.3.1"
   }
 }

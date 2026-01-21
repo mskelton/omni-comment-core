@@ -12,6 +12,6 @@ export default [
     },
   },
   {
-    ignores: ["dist/**", "lib/**"],
+    ignores: ["dist/**"],
   },
 ]

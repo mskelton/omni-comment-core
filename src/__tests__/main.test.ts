@@ -3,7 +3,7 @@ import yaml from "js-yaml"
 import { fs, vol } from "memfs"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { createBlankComment, editCommentBody } from "../comments"
-import { omniComment } from "../main"
+import { omniComment } from "../index"
 
 vi.mock("node:fs", () => ({ default: fs }))
 vi.mock("node:fs/promises", () => ({ default: fs.promises }))

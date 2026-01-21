@@ -3,7 +3,7 @@
     "target": "es6",
     "module": "commonjs",
     "lib": ["es6"],
-    "outDir": "./lib",
+    "outDir": "./dist",
     "rootDir": "./src",
     "declaration": true,
     "strict": true,
@@ -11,5 +11,5 @@
     "esModuleInterop": true,
     "skipLibCheck": true
   },
-  "exclude": ["lib", "node_modules", "vite.config.mts"]
+  "exclude": ["dist", "node_modules", "vite.config.mts"]
 }
