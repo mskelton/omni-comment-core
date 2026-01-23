@@ -1,5 +1,5 @@
-import { readMetadata } from "./metadata"
-import { Context } from "./utils"
+import { readMetadata } from "./metadata.js"
+import { Context } from "./utils.js"
 
 export async function findComment(prNumber: number, { logger, octokit, repo }: Context) {
   logger?.debug("Searching for existing comment...")
@@ -98,6 +98,32 @@ export async function createBlankComment(configPath: string) {
     .join("\n\n")
 }
 
+export function getSectionContent(body: string, section: string): string | null {
+  const lines = body.split("\n")
+  const startIndex = lines.findIndex((line) => line.includes(createIdentifier("start", section)))
+  const endIndex = lines.findIndex((line) => line.includes(createIdentifier("end", section)))
+
+  if (startIndex === -1 || endIndex === -1 || startIndex >= endIndex) {
+    return null
+  }
+
+  return lines.slice(startIndex + 1, endIndex).join("\n")
+}
+
+export function formatSectionContent(content: string, title?: string, collapsed?: boolean): string {
+  if (title) {
+    return [
+      `<details${collapsed ? "" : " open"}>`,
+      `<summary><h2>${title}</h2></summary>`,
+      "",
+      content,
+      "",
+      "</details>",
+    ].join("\n")
+  }
+  return content
+}
+
 export function editCommentBody({
   body,
   collapsed,
@@ -115,16 +141,7 @@ export function editCommentBody({
   const startIndex = lines.findIndex((line) => line.includes(createIdentifier("start", section)))
   const endIndex = lines.findIndex((line) => line.includes(createIdentifier("end", section)))
 
-  if (title) {
-    content = [
-      `<details${collapsed ? "" : " open"}>`,
-      `<summary><h2>${title}</h2></summary>`,
-      "",
-      content,
-      "",
-      "</details>",
-    ].join("\n")
-  }
+  content = formatSectionContent(content, title, collapsed)
 
   // If the section is not found, append the content to the end of the comment
   // This is necessary as you add new comment sections

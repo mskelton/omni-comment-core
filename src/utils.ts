@@ -1,5 +1,5 @@
 import { Octokit } from "@octokit/rest"
-import { Logger } from "./logger"
+import { Logger } from "./logger.js"
 
 export interface RepoContext {
   owner: string

@@ -1,5 +1,5 @@
-import { retry } from "./retry"
-import { Context } from "./utils"
+import { retry } from "./retry.js"
+import { Context } from "./utils.js"
 
 export function acquireLock(
   id: number,

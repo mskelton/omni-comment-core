@@ -2,8 +2,8 @@ import { Octokit } from "@octokit/rest"
 import yaml from "js-yaml"
 import { fs, vol } from "memfs"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
-import { createBlankComment, editCommentBody } from "../comments"
-import { omniComment } from "../index"
+import { createBlankComment, editCommentBody } from "../comments.js"
+import { omniComment } from "../index.js"
 
 vi.mock("node:fs", () => ({ default: fs }))
 vi.mock("node:fs/promises", () => ({ default: fs.promises }))
@@ -232,8 +232,15 @@ describe("omni comment", async () => {
   })
 
   it("should clear the comment when content is empty", async () => {
+    const existingBody = editCommentBody({
+      body: await createBlankComment("/omni-comment.yml"),
+      content: "test comment body",
+      section: "test-section",
+      title: "test title",
+    })
+
     vi.spyOn(octokit.paginate, "iterator").mockImplementation(async function* () {
-      yield ok([{ body: await createBlankComment("/omni-comment.yml"), id: 456 }])
+      yield ok([{ body: existingBody, html_url: "test-url", id: 456 }])
     })
 
     vi.spyOn(octokit.issues, "getComment").mockResolvedValue(
@@ -277,6 +284,74 @@ describe("omni comment", async () => {
 
       <!-- mskelton/omni-comment end="test-section" -->"
     `)
+  })
+
+  it("should skip update when section content is unchanged", async () => {
+    const existingBody = editCommentBody({
+      body: await createBlankComment("/omni-comment.yml"),
+      content: "same content",
+      section: "test-section",
+    })
+
+    vi.spyOn(octokit.paginate, "iterator").mockImplementation(async function* () {
+      yield ok([{ body: existingBody, html_url: "test-url", id: 456 }])
+    })
+
+    const updateCommentSpy = vi.spyOn(octokit.issues, "updateComment")
+    const getCommentSpy = vi.spyOn(octokit.issues, "getComment")
+
+    const result = await omniComment({
+      configPath: "/omni-comment.yml",
+      issueNumber: 123,
+      message: "same content",
+      repo: "owner/repo",
+      section: "test-section",
+      token: "faketoken",
+    })
+
+    expect(result).toEqual({
+      html_url: "test-url",
+      id: 456,
+      status: "unchanged",
+    })
+
+    // Should not acquire lock or call update
+    expect(updateCommentSpy).not.toHaveBeenCalled()
+    expect(getCommentSpy).not.toHaveBeenCalled()
+  })
+
+  it("should skip update when section content with title is unchanged", async () => {
+    const existingBody = editCommentBody({
+      body: await createBlankComment("/omni-comment.yml"),
+      collapsed: false,
+      content: "same content",
+      section: "test-section",
+      title: "My Title",
+    })
+
+    vi.spyOn(octokit.paginate, "iterator").mockImplementation(async function* () {
+      yield ok([{ body: existingBody, html_url: "test-url", id: 456 }])
+    })
+
+    const updateCommentSpy = vi.spyOn(octokit.issues, "updateComment")
+
+    const result = await omniComment({
+      configPath: "/omni-comment.yml",
+      issueNumber: 123,
+      message: "same content",
+      repo: "owner/repo",
+      section: "test-section",
+      title: "My Title",
+      token: "faketoken",
+    })
+
+    expect(result).toEqual({
+      html_url: "test-url",
+      id: 456,
+      status: "unchanged",
+    })
+
+    expect(updateCommentSpy).not.toHaveBeenCalled()
   })
 
   it("should noop if the comment doesn't exist and the content is empty", async () => {
