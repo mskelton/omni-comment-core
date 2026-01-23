@@ -1,3 +1,4 @@
+import { RequestError } from "@octokit/request-error"
 import { retry } from "./retry.js"
 import { Context } from "./utils.js"
 
@@ -27,7 +28,16 @@ export function acquireLock(
           reaction_id: reaction.id,
         }
 
-        await octokit.reactions.deleteForIssue({ ...args, issue_number: id })
+        try {
+          await octokit.reactions.deleteForIssue({ ...args, issue_number: id })
+        } catch (error) {
+          // If the reaction is already deleted, we can safely ignore the error
+          if (error instanceof RequestError && error.status === 404) {
+            logger?.debug("Lock already released")
+          } else {
+            throw error
+          }
+        }
       }
 
       if (status === 201) {
